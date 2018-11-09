@@ -1,0 +1,141 @@
+Tipo,CO2 neto,CH4,N2O,HFC,PFC,SF6,NOx,CO,NMVOC,SO2
+"Total de emisiones y
+absorciones nacionales","3.922,76","179,52","2,961","179,45",0,"1,74","54,88","405,33","85,44","4,6"
+1 ENERGÍA,"6.815,77","5,794","0,464",,,,"53,4","351,64","67,95","4,15"
+"1A Actividades de quema
+de combustible","6.638,09","5,791","0,464",,,,"53,4","351,64","67,95","4,15"
+1A1 Industrias de la energía,"606,28","0,06","0,01",,,,"0,71","0,24","0,017","0,89"
+"1A2 Industrias manufactureras
+y de construcción","1.075,78","0,610","0,083",,,,"6,37","13,67","6,05","3,01"
+1A3 Transporte,"4.582,62","1,188","0,317",,,,"44,34","285,07","53,77",NE
+1A4 Otros sectores,"373,41","3,932","0,054",,,,"1,98","52,66","8,11","0,246"
+1A5 No especificado,NA,NA,NA,,,,,,,
+"1B Emisiones fugitivas
+provenientes de la fabricación
+de combustibles","177,69","0,003",NO,,,,NO,NO,,
+1B1 Combustibles sólidos,NO,NO,NO,,,,,,,
+1B2 Petróleo y gas natural,NO,"0,003",NO,,,,NO,NO,,NO
+"1B3 Otras emisiones
+provenientes de la
+producción de energía","177,69",NO,NO,,,,NO,NO,NO,NO
+"1C Transporte y almacenamiento
+de dióxido de carbono",NO,,,,,,NO,NO,NO,NO
+1C1 Transporte de CO2,NO,,,,,,NO,NO,NO,NO
+2 PROCESOS INDUSTRIALES Y USO DE PRODUCTOS,"621,53",NA,NA,"179,45",0,"1,74",,,,"0,45"
+2A Industria de los minerales,"621,53",NA,,,,,,,,
+2A1 Producción de cemento,"592,35",NA,,,,,,,,"0,45"
+2A2 Producción de cal,"3,75",NA,,,,,,,,
+2A3 Producción de vidrio,"25,43",NA,,,,,,,,
+"2A4 Otros usos de carbonatos
+en los procesos: cerámicas",NE,NA,,,,,,,,
+2A5 Otros (sírvase especificar),NA,NA,NA,,,,,,,
+2B Industria química,NO,NO,NOA,,,,,,,
+2B1 Producción de amoníaco,NO,NO,NO,,,,,,,
+2B2 Producción de ácido nítrico,NO,NO,NO,,,,,,,
+2B3 Producción de ácido adípico,NO,NO,NO,,,,,,,
+"2B4 Producción de caprolactama,
+glyoxal y ácido glyoxílico",NO,NO,NO,,,,,,,
+2B5 Producción de carburo,NO,NO,NO,,,,,,,
+"2B6 Producción de dióxido
+de titanio",NO,NO,NO,,,,,,,
+2B7 Producción de ceniza de sosa,NO,NO,NO,,,,,,,
+"2B8 Producción petroquímica
+y de negro de humo",NO,NO,NO,,,,,,,
+2B9 Producción fluoroquímica,,,,,,,,,,
+2B10 Otros (sírvase especificar),NO,,,,,,,,,
+2C Industria de los metales,NO,NO,NO,,,,NO,NO,,NO
+2C1 Producción de hierro y acero,NO,NO,NO,,,,NO,NO,NO,NO
+2C2 Producción de ferroaleaciones,NO,NO,NO,,,,NO,NO,NO,NO
+2C3 Producción de aluminio,NO,NO,,,NO,,NO,NO,NO,NO
+2C4 Producción de magnesio,NO,,,NO,NO,NO,NO,NO,NO,NO
+2C5 Producción de plomo,NO,,,,,,NO,NO,NO,NO
+2C6 Producción de zinc,NO,,,,,,NO,NO,NO,NO
+2C7 Otros (sírvase especificar),NO,NO,NO,NO,NO,NO,NO,NO,NO,NO
+2D Uso de productos no energéticos de combustibles y de solvente,NE,NO,NO,,,,NO,NO,"13,55",NO
+2D1 Uso de lubricante,NE,,,,,,NO,NO,NO,NO
+2D2 Uso de la cera de parafina,NE,,,,,,NO,NO,NO,NO
+2D3 Uso de solvente,,,,,,,NO,NO,NO,NO
+2D4 Otros (Usos de asfalto),NO,NO,NO,,,,NO,NO,"13,55",NO
+2E Industria electrónica,,,,,,,,,,
+"2E1 Circuito integrado o
+semiconductor",NE,,,,,,NO,NO,NO,NO
+2E2 Pantalla plana tipo TFT,,,,,,,NO,NO,NO,NO
+2E3 Productos fotovoltaicos,,,,,,,NO,NO,NO,NO
+"2E4 Fluido de transporte y
+transferencia térmica",,,,,,,NO,NO,NO,NO
+2E5 Otros (sírvase especificar),NO,NO,NO,NO,NO,NO,NO,NO,NO,NO
+"2F Usos de productos como
+sustitutos para las sustancias
+que agotan la capa de ozono",,,,"179,45",,,,,,
+"2F1 Refrigeración y aire
+acondicionado",NA,,,"163,77",NO,,NO,NO,NO,NO
+2F2 Agentes espumantes,NA,,,"11,03",NO,,NO,NO,NO,NO
+2F3 Productos contra incendios,NA,,,"3,03",NO,,NO,NO,NO,NO
+2F4 Aerosoles,,,,"1,62",NO,,NO,NO,NO,NO
+2F5 Solventes,,,,0,NO,,NO,NO,NO,NO
+2F6 Otras aplicaciones,,,,,,,NO,NO,NO,NO
+"2G Manufactura y utilización
+de otros productos",,,,,,"1,74",,,,
+2G1 Equipos eléctricos,,,,,NO,"1,74",NO,NO,NO,NO
+"2G2 SF6 y PFC del uso de
+otros productos",,,,,NO,NO,NO,NO,NO,NO
+2G3 N2O del uso de productos,,,NE,,,,NO,NO,NO,NO
+2G4 Otros (sírvase especificar),NO,NO,,NO,,,NO,NO,NO,NO
+2H Otros (sírvase especificar),NA,NA,NA,,,,NO,NO,"3,94",NO
+"2H1 Industria de la pulpa
+y del papel",NA,NA,,,,,NO,NO,NO,NO
+"2H2 Industria de la
+alimentación y la bebida",NA,NA,,,,,NO,NO,"3,94",NO
+2H3 Otros (sírvase especificar),NO,NO,NO,,,,NO,NO,NO,NO
+"3 AGRICULTURA, SILVICULTURA Y OTROS USOS DE LA TIERRA","-3.594,76",,,,,,,,,
+3A Ganado,,"96,245",,,,,,,,
+3A1 Fermentación entérica,,"94,27",,,,,,,,
+3A2 Gestión del estiércol,,"1,975","0,234",,,,,,,
+3B Tierra,"-3.594,76","5,54",,,,,,,,
+3B1 Tierras forestales,"-5.255,18",,,,,,,,,
+3B2 Tierras de cultivo,"772,74",,,,,,,,,
+3B3 Pastizales,"887,68",,,,,,,,,
+3B4 Humedales,NO,"5,54",,,,,,,,
+3B5 Asentamientos,IE,,,,,,,,,
+3B6 Otras tierras,NO,,,,,,,,,
+"3C Fuentes agregadas y fuentes
+de emisión no CO2 en la tierra",,"12,90","1,984",,,,"1,48","53,69",NE,NO
+3C1 Quemado de biomasa,IE,"1,774","0,04",,,,"1,48","53,69",NE,NO
+3C2 Encalado,IE,,,,,,,,,
+3C3 Aplicación de urea,IE,,,,,,,,,
+"3C4 Emisiones directas de N2O
+de los suelos gestionados",,,"1,944",,,,,,,
+"3C5 Emisiones indirectas de N2O
+de los suelos gestionados",,,IE,,,,,,,
+"3C6 Emisiones indirectas de
+N2O resultantes de la
+gestión del estiércol",,,IE,,,,,,,
+3C7 Cultivo del arroz,,"11,13",NO,,,,,,,
+3C8 Otros (sírvase especificar),NO,NO,NO,,,,,,,
+3D Otros,,,,,,,,,,
+"3D1 Productos de madera
+recolectada",NE,,,,,,,,,
+3D2 Otros (sírvase especificar),NO,,,,,,,,,
+4 DESECHOS,"80,22","58,96","0,193",,,,,,,
+4A Eliminación de desechos sólidos,,40,,,,,,,,
+"4B Tratamiento biológico de
+los desechos sólidos",,NE,NE,,,,,,,
+"4C Incineración e incineración
+abierta de desechos","80,22","1,09","0,013",,,,,,,
+"4D Tratamiento y eliminación
+de aguas residuales",NA,"17,87","0,18",,,,,,,
+4E Otros (sírvase especificar),NO,NO,NO,,,,,,,
+5 OTROS,,,,,,,,,,
+"5A Emisiones indirectas de N2O
+de la deposición atmosférica
+de nitrógeno en NOx y NH3",,,IE,,,,,,,
+5B Otros (sírvase especificar),NO,NO,NO,,,,,,,
+Elementos recordatorios (5),,,,,,,,,,
+"Tanques de combustible
+internacional",NO,,,,,,,,,
+"Aviación internacional (Tanques
+de combustible internacional)","623,0","0,0134","0,017",,,,"2,57","0,59","0,09",NE
+"Transporte marítimo y fluvial
+internacional (Tanques de
+combustible internacional)",NO,,,,,,,,,
+Operaciones multilaterales,NO,,,,,,,,,
