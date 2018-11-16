@@ -1,0 +1,60 @@
+---
+title: "Visualización de la base de datos de desastres en Costa Rica"
+author: "Guillermo Durán Sanabria"
+date: "11/16/2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+El objetivo de este tutorial es hacer un análisis temporal y geográfico de los desastres relacionados a eventos hidrometeorológicos y deslizamientos en Costa Rica. El análisis se llevará a cabo utilizando datos publicos generados por distintas instituciones gubernamentales de Costa Rica.  
+
+##
+Los datos se extrayeron del pdf de la 2nda edición del documento *Histórico de desastres en Costa Rica. Febrero 1723 - Abril 2017* elaborado por la **Comisión nacional de prevención de riesgos y atención de emergencias (CNE) de Costa Rica** utilizando la herramienta gratuita Tabula https://tabula.technology.  
+
+El documento pdf puede ser descargado en el siguiente enlace:
+https://www.cne.go.cr/index.php/documentacienuprincipal-96/historico-de-desastres-en-costa-rica
+
+Para el análisis se extrayeron las tablas sobre los eventos hidrometeorológicos y deslizamientos del documento. Se seleccionaron únicamente estas dos tipos de desastres por ser los que guardan una relación directa a variabilidad y cambio climático.
+
+Este tutorial se llevará a cabo utilizando R junto con los paquetes del **Tidyverse** para la manipulación de los datos y análisis de texto, **lubridate** para las series de tiempo, y los paquetes **sf** y **tmap** para el análisis espacial y generación de mapas.
+```{r}
+library(tidyverse)
+library(lubridate)
+library(sf)
+library(tmap)
+```
+
+
+
+1. Preparación de la tabla general, utilizando las tablas generadas en Tabula (notese que la columna de FECHA se está importando como tipo *date* y se están eliminando los encabezados de cada tabla individual)
+```{r message=FALSE, warning=FALSE}
+tablahidro <- read_csv("datos/tabula-historico_desastres_hidrometeo.csv", 
+    col_types = cols(FECHA = col_date(format = "%Y/%m/%d"))) %>% 
+  na.omit() %>% 
+  mutate(TIPO = "Hidrometeorológicos")
+
+tablades <- read_csv("datos/tabula-historico_desastres_deslizamientos.csv", 
+    col_types = cols(FECHA = col_date(format = "%Y/%m/%d"))) %>% 
+  na.omit() %>% 
+  mutate(TIPO = "Deslizamientos")
+
+names(tablahidro) <- names(tablades) #hacemos que los encabezados de ambas tablas sean iguales 
+tablaGeneral <- rbind(tablades, tablahidro) #juntamos ambas tablas en una tabla general
+```
+
+Cronología con el número de eventos por cada tipo (Hidrometeorológicos y Deslizamientos) por año.
+```{r}
+ggplot(tablaGeneral %>% 
+         mutate(aNo = year(FECHA)) %>% 
+         group_by(aNo, TIPO) %>% 
+         summarise(Cantidad = n()), 
+       aes(x = aNo, y = Cantidad)) +
+  geom_col() +
+  facet_grid(rows = vars(TIPO)) +
+  labs(x = "Año")
+```
+
+

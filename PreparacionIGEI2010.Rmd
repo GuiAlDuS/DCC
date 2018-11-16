@@ -15,6 +15,12 @@ library(tidyverse)
 tabla2010_raw <- read_csv("datos/TablaGeneral_InvGEI2010.csv")
 ```
 
+Revisión de tabla:
+```{r}
+tabla2010_raw
+```
+
+
 Cosas necesarias para limpiar la tabla:
 - Eliminar puntos como separadores de miles y cambiar comas a puntos para separadores de decimales
 - Cambiar tipos de datos de todas las columnas menos la primera a números.
