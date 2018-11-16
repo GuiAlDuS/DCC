@@ -11,16 +11,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 El objetivo de este tutorial es hacer un análisis temporal y geográfico de los desastres relacionados a eventos hidrometeorológicos y deslizamientos en Costa Rica. El análisis se llevará a cabo utilizando datos publicos generados por distintas instituciones gubernamentales de Costa Rica.  
 
-##
-Los datos se extrayeron del pdf de la 2nda edición del documento *Histórico de desastres en Costa Rica. Febrero 1723 - Abril 2017* elaborado por la **Comisión nacional de prevención de riesgos y atención de emergencias (CNE) de Costa Rica** utilizando la herramienta gratuita Tabula https://tabula.technology.  
+### Procedencia de los datos
+Los datos se extrayeron del pdf de la 2nda edición del documento *Histórico de desastres en Costa Rica. Febrero 1723 - Abril 2017* elaborado por la **Comisión nacional de prevención de riesgos y atención de emergencias (CNE) de Costa Rica** utilizando la herramienta gratuita Tabula https://tabula.technology
 
 El documento pdf puede ser descargado en el siguiente enlace:
 https://www.cne.go.cr/index.php/documentacienuprincipal-96/historico-de-desastres-en-costa-rica
 
-Para el análisis se extrayeron las tablas sobre los eventos hidrometeorológicos y deslizamientos del documento. Se seleccionaron únicamente estas dos tipos de desastres por ser los que guardan una relación directa a variabilidad y cambio climático.
+Para el análisis se extrayeron del documento las tablas sobre los eventos hidrometeorológicos y deslizamientos. Se seleccionaron únicamente estos dos tipos de desastres por ser los que guardan una relación directa a variabilidad y cambio climático.
 
-Este tutorial se llevará a cabo utilizando R junto con los paquetes del **Tidyverse** para la manipulación de los datos y análisis de texto, **lubridate** para las series de tiempo, y los paquetes **sf** y **tmap** para el análisis espacial y generación de mapas.
-```{r}
+Este tutorial se llevará a cabo utilizando R junto con los paquetes del **tidyverse** para la manipulación de los datos y análisis de texto, **lubridate** para las series de tiempo, y los paquetes **sf** y **tmap** para el análisis espacial y generación de mapas.
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
 library(sf)
@@ -57,4 +57,64 @@ ggplot(tablaGeneral %>%
   labs(x = "Año")
 ```
 
+2. Asignación geográfica a los eventos.
+
+Viendo la tabla, nos damos cuenta que en muchos casos la última palabra de la columna de *TÍTULO DEL EVENTO* menciona la provincia donde ocurrió el desastre. Tomando esto como guía podemos extraer la última palabra de esta columna y asignarla a una nueva columna llamada *PROVINCIA*.
+```{r}
+provincias <- c("Alajuela", "José", "Guanacaste", "Limón", "Heredia", "Puntarenas", "Cartago")
+
+tablaGeneral_mod <- tablaGeneral %>% 
+  mutate(`TÍTULO DEL EVENTO` = str_replace_all(`TÍTULO DEL EVENTO`, "\\r", " "),
+         PROVINCIA = str_replace(word(`TÍTULO DEL EVENTO`, -1), "\\.", ""),
+         PROVINCIA = case_when(PROVINCIA %in% provincias ~ PROVINCIA),
+         PROVINCIA = str_replace(PROVINCIA, "José", "San José"))
+```
+
+Con el chunk anterior también corroboramos que el valor en la nueva columna corresponda con el nombre de alguna provincia, generando de esta manera entradas vacías (donde la última palabra de la descripción no encajaba con el nombre de una provincia).
+
+El número de entradas sin nombre de provincias es de:
+```{r}
+sum(is.na(tablaGeneral_mod$PROVINCIA))
+```
+Lo que significa que a la mitad de nuestra tabla de datos no pudimos asignarle una provincia de forma automática. 
+
+Ahora, preliminarmente, podemos hacer una tabla resumen del número de eventos por provincia.
+```{r}
+table(tablaGeneral_mod$PROVINCIA, tablaGeneral_mod$TIPO)
+```
+
+Ahora deberemos de asignar manualmente la provincia a las entradas en que no se pudo asignar automáticamente. Vale mencionar que hay varios casos en que según la descripción (huracanes, por ejemplo) la afectación fue nacional.
+
+La asignación de las provincias podría hacerse fácilmente en un programa de hoja de cálculo (Excel, por ejemplo), pero también lo podemos hacer desde R.
+```{r}
+#filas asignadas a cada provincia
+Cartago <- c(8, 49, 76, 79, 85, 86)
+SJ <- c(14, 15, 50, 77, 78, 85, 88)
+Heredia <- c(91)
+Guanacaste <- c(29, 32, 72, 80, 82, 83, 88, 90)
+Puntarenas <- c(33, 40, 46, 56, 59, 64, 72, 73, 75, 80, 81, 82, 83, 88, 90)
+Alajuela <- c(51, 66, 78, 82, 84, 85, 91)
+Limon <- c(55, 60, 62, 63, 66, 67, 76, 79, 84, 85) 
+nacional <- c(89)
+
+```
+
+Descargar datos geográficos de límites provinciales y toponimia.
+
+```{r}
+library(gdalUtils)
+library(rgdal)
+library(rmapshaper)
+
+dsn_prov <- "WFS:http://geos.snitcr.go.cr/be/IGN_5/wfs?"
+ogrListLayers(dsn_prov) #lista de capas en ese WFS
+
+provincias_geo <- st_read(dsn_prov, "IGN_5:limiteprovincial_5k")
+provincias_geo <- ms_simplify(ms_simplify(provincias_geo)) #simplificación de borde de los polígonos
+  
+dsn_pob <- "WFS:http://geos.snitcr.go.cr/be/IGN_NG/wms?"
+ogrListLayers(dsn_pob) 
+
+poblados_geo <- st_read(dsn_pob, "IGN_NG:toponimos_25k")
+```
 
