@@ -373,10 +373,11 @@ Gráfico de número de desastres por provincia:
 
 ``` r
 ggplot(tablaGLimpia %>% 
-         select(7:13) %>% 
+         select(5, 7:13) %>% 
+         group_by(TIPO) %>% 
          summarise_all(funs(sum(.))) %>% 
-         gather(key = PROVINCIA, value = TOTAL), 
-       aes(x = PROVINCIA, y = TOTAL)) +
+         gather(key = PROVINCIA, value = TOTAL, -TIPO), 
+       aes(x = PROVINCIA, y = TOTAL, fill = TIPO)) +
   geom_col()
 ```
 
