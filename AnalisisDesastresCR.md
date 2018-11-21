@@ -56,7 +56,8 @@ tablades <- read_csv("datos/tabula-historico_desastres_deslizamientos.csv",
   mutate(TIPO = "Deslizamientos")
 
 names(tablahidro) <- names(tablades) #hacemos que los encabezados de ambas tablas sean iguales 
-tablaGeneral <- rbind(tablades, tablahidro) #juntamos ambas tablas en una tabla general
+tablaGeneral <- rbind(tablades, tablahidro) %>%  #juntamos ambas tablas en una tabla general
+  mutate(ID = row_number())
 ```
 
 Cronología con el número de eventos por cada tipo (Hidrometeorológicos y
@@ -77,105 +78,315 @@ ggplot(tablaGeneral %>%
 
 2.  Asignación geográfica a los eventos.
 
-Viendo la tabla, nos damos cuenta que en muchos casos la última palabra
-de la columna de *TÍTULO DEL EVENTO* menciona la provincia donde ocurrió
-el desastre. Tomando esto como guía podemos extraer la última palabra de
-esta columna y asignarla a una nueva columna llamada
-*PROVINCIA*.
+Dado que la tabla no tiene un componente geográfico en su estructura,
+vamos a asignarle uno utilizando el siguiente código. Este crea una
+columna lógica por provincia y le asigna un **T** o **F** si el nombre
+de la provincia aparece en la columna *`TÍTULO DEL EVENTO`*. Se hizo de
+esta manera ya que hay varios eventos que reportaron daños en varias
+provincias.
 
 ``` r
-provincias <- c("Alajuela", "José", "Guanacaste", "Limón", "Heredia", "Puntarenas", "Cartago")
-
 tablaGeneral_mod <- tablaGeneral %>% 
-  mutate(`TÍTULO DEL EVENTO` = str_replace_all(`TÍTULO DEL EVENTO`, "\\r", " "),
-         PROVINCIA = str_replace(word(`TÍTULO DEL EVENTO`, -1), "\\.", ""),
-         PROVINCIA = case_when(PROVINCIA %in% provincias ~ PROVINCIA),
-         PROVINCIA = str_replace(PROVINCIA, "José", "San José"))
+  mutate(
+    `TÍTULO DEL EVENTO` = str_replace_all(`TÍTULO DEL EVENTO`, "\\r", " "),
+    OBSERVACIONES  = str_replace_all(`TÍTULO DEL EVENTO`, "\\r", " "),
+    Desc = paste(`TÍTULO DEL EVENTO`, OBSERVACIONES, sep = " "),
+    GUANACASTE = if_else(str_detect(Desc, "Guanacaste"), TRUE, FALSE),
+    SANJOSE = if_else(str_detect(Desc, "San José"), TRUE, FALSE),
+    HEREDIA = if_else(str_detect(Desc, "Heredia"), TRUE, FALSE),
+    ALAJUELA = if_else(str_detect(Desc, "Alajuela"), TRUE, FALSE),
+    PUNTARENAS = if_else(str_detect(Desc, "Puntarenas"), TRUE, FALSE),
+    CARTAGO = if_else(str_detect(Desc, "Cartago"), TRUE, FALSE),
+    LIMON = if_else(str_detect(Desc, "Limón"), TRUE, FALSE))
 ```
 
-Con el chunk anterior también corroboramos que el valor en la nueva
-columna corresponda con el nombre de alguna provincia, generando de esta
-manera entradas vacías (donde la última palabra de la descripción no
-encajaba con el nombre de una provincia).
-
-El número de entradas sin nombre de provincias es de:
+El conteo de eventos por provincia es:
 
 ``` r
-sum(is.na(tablaGeneral_mod$PROVINCIA))
+tablaGeneral_mod %>% select(8:14) %>% summarise_all(funs(sum(.)))
 ```
 
-    ## [1] 54
+    ## # A tibble: 1 x 7
+    ##   GUANACASTE SANJOSE HEREDIA ALAJUELA PUNTARENAS CARTAGO LIMON
+    ##        <int>   <int>   <int>    <int>      <int>   <int> <int>
+    ## 1          6      10       3        8         12      18    10
 
-Lo que significa que a la mitad de nuestra tabla de datos no pudimos
-asignarle una provincia de forma automática.
-
-Ahora, preliminarmente, podemos hacer una tabla resumen del número de
-eventos por provincia.
+Revisión de elementos sin provincia asignada:
 
 ``` r
-table(tablaGeneral_mod$PROVINCIA, tablaGeneral_mod$TIPO)
+faltantes <- tablaGeneral_mod %>% 
+  mutate(total = GUANACASTE + SANJOSE + HEREDIA + ALAJUELA + PUNTARENAS + CARTAGO + LIMON) %>% 
+  filter(total == 0)
+
+faltantes %>% summarise(n())
 ```
 
-    ##             
-    ##              Deslizamientos Hidrometeorológicos
-    ##   Alajuela                1                   5
-    ##   Cartago                 4                  13
-    ##   Guanacaste              0                   5
-    ##   Heredia                 0                   2
-    ##   Limón                   1                   7
-    ##   Puntarenas              3                   9
-    ##   San José                3                   3
+    ## # A tibble: 1 x 1
+    ##   `n()`
+    ##   <int>
+    ## 1    49
 
-Ahora deberemos de asignar manualmente la provincia a las entradas en
-que no se pudo asignar automáticamente. Vale mencionar que hay varios
-casos en que según la descripción (huracanes, por ejemplo) la afectación
-fue nacional.
+Deberemos asignar provincia a los 49 eventos que quedaron sin asignar.
 
-La asignación de las provincias podría hacerse fácilmente en un programa
-de hoja de cálculo (Excel, por ejemplo), pero también lo podemos hacer
+Como el número de entradas que quedaron sin asignar no es tan grande, la
+asignación de las provincias podría hacerse fácilmente en un programa de
+hoja de cálculo (Excel, por ejemplo), pero también lo podemos hacer
 desde R.
 
+Sería interesante hacer un conteo de las palabras más comunes en los
+títulos de esos 49 eventos en que no se les asignó provincia, para esto
+vamos a necesitar el paquete tidytext y un vector de *stop\_words* en
+Castellano.
+
 ``` r
-#filas asignadas a cada provincia
-Cartago <- c(8, 49, 76, 79, 85, 86)
-SJ <- c(14, 15, 50, 77, 78, 85, 88)
-Heredia <- c(91)
-Guanacaste <- c(29, 32, 72, 80, 82, 83, 88, 90)
-Puntarenas <- c(33, 40, 46, 56, 59, 64, 72, 73, 75, 80, 81, 82, 83, 88, 90)
-Alajuela <- c(51, 66, 78, 82, 84, 85, 91)
-Limon <- c(55, 60, 62, 63, 66, 67, 76, 79, 84, 85) 
-nacional <- c(89)
+library(tm)
 ```
+
+    ## Loading required package: NLP
+
+    ## 
+    ## Attaching package: 'NLP'
+
+    ## The following object is masked from 'package:ggplot2':
+    ## 
+    ##     annotate
+
+``` r
+library(tidytext)
+
+custom_stop_words <- bind_rows(
+  stop_words,
+  data_frame(Palabras = tm::stopwords(kind = "sp"),
+             lexicon = "custom")) %>% 
+  filter(lexicon == "custom")
+```
+
+``` r
+faltantes %>% select(ID, Desc) %>%
+  unnest_tokens(Palabras, Desc) %>% 
+  anti_join(custom_stop_words) %>%
+  count(Palabras, sort = TRUE)
+```
+
+    ## Joining, by = "Palabras"
+
+    ## # A tibble: 132 x 2
+    ##    Palabras         n
+    ##    <chr>        <int>
+    ##  1 inundaciones    40
+    ##  2 río             34
+    ##  3 huracán         26
+    ##  4 caribe          22
+    ##  5 tropical        22
+    ##  6 vertiente       14
+    ##  7 zona            14
+    ##  8 tormenta        12
+    ##  9 baja            10
+    ## 10 presión         10
+    ## # ... with 122 more rows
+
+Viendo las palabras más comunes es posible darnos cuenta que hay frases
+que debemos de asignar a provincias, estas son: **Vertiente Caribe:
+Limón, Alajuela, Heredia, Cartago** **Vertiente Caribe = Zona
+Atlántica** **Zona Norte: Alajuela y Heredia** **Valle Central:
+Heredia, San José, Alajuela y Cartago** **Zona Sur: Puntarenas**
+
+Escribimos un script que asocie esas palabras las asocie a las
+provincias respectivas:
+
+``` r
+faltantes_mod <- faltantes %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO"), 
+            funs(if_else(str_detect(Desc, regex("Vertiente Caribe", ignore_case = TRUE)), 
+                         TRUE, .))) %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO"), 
+            funs(if_else(str_detect(Desc, regex("Vertiente\\s*\\w*\\sCaribe", ignore_case = TRUE)), 
+                         TRUE, .))) %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO"), 
+            funs(if_else(str_detect(Desc, regex("Zona Caribe", ignore_case = TRUE)), 
+                         TRUE, .))) %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO"), 
+            funs(if_else(str_detect(Desc, regex("Zona Atlántica", ignore_case = TRUE)), 
+                         TRUE, .))) %>% 
+  mutate_at(.vars = c("ALAJUELA", "HEREDIA", "CARTAGO"), 
+            funs(if_else(str_detect(Desc, regex("Zona Norte", ignore_case = TRUE)), 
+                         TRUE, .))) %>% 
+  mutate_at(.vars = c("PUNTARENAS"), 
+            funs(if_else(str_detect(Desc, regex("Zona Sur", ignore_case = TRUE)), 
+                         TRUE, .))) %>% 
+  mutate_at(.vars = c("SANJOSE", "ALAJUELA", "HEREDIA", "CARTAGO"), 
+            funs(if_else(str_detect(Desc, regex("Valle Central", ignore_case = TRUE)), 
+                         TRUE, .)))
+```
+
+Faltantes:
+
+``` r
+faltantes2 <- faltantes_mod %>% 
+  mutate(total = GUANACASTE + SANJOSE + HEREDIA + ALAJUELA + PUNTARENAS + CARTAGO + LIMON) %>% 
+  filter(total == 0)
+
+faltantes2 %>% summarise(n())
+```
+
+    ## # A tibble: 1 x 1
+    ##   `n()`
+    ##   <int>
+    ## 1    39
+
+``` r
+faltantes2
+```
+
+    ## # A tibble: 39 x 15
+    ##    FECHA      `TÍTULO DEL EVE… OBSERVACIONES `REFERENCIA BIB… TIPO     ID
+    ##    <date>     <chr>            <chr>         <chr>            <chr> <int>
+    ##  1 1993-12-09 Deslizamiento e… Deslizamient… "Madrigal, Sala… Desl…     8
+    ##  2 1949-12-07 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    21
+    ##  3 1954-10-20 Huracán Hazel.   Huracán Haze… Montero y Salaz… Hidr…    29
+    ##  4 1955-11-02 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    33
+    ##  5 1963-12-01 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    40
+    ##  6 1969-10-07 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    46
+    ##  7 1970-04-10 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    49
+    ##  8 1971-08-12 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    50
+    ##  9 1971-09-19 Huracán Irene.   Huracán Iren… Montero y Salaz… Hidr…    51
+    ## 10 1978-08-03 Huracán Caribe.  Huracán Cari… Decreto de Emer… Hidr…    55
+    ## # ... with 29 more rows, and 9 more variables: Desc <chr>,
+    ## #   GUANACASTE <lgl>, SANJOSE <lgl>, HEREDIA <lgl>, ALAJUELA <lgl>,
+    ## #   PUNTARENAS <lgl>, CARTAGO <lgl>, LIMON <lgl>, total <int>
+
+Revisando las descripciones de los últimos que quedan por asignar vemos
+que muchos son huracanes, tormentas (tropicales) y sistemas de baja
+(presión):
+
+``` r
+faltantes2 %>% select(ID, Desc) %>%
+  unnest_tokens(Palabras, Desc) %>% 
+  anti_join(custom_stop_words) %>%
+  count(Palabras, sort = TRUE)
+```
+
+    ## Joining, by = "Palabras"
+
+    ## # A tibble: 112 x 2
+    ##    Palabras         n
+    ##    <chr>        <int>
+    ##  1 inundaciones    28
+    ##  2 río             28
+    ##  3 huracán         24
+    ##  4 tropical        20
+    ##  5 caribe          10
+    ##  6 tormenta        10
+    ##  7 baja             8
+    ##  8 presión          8
+    ##  9 sistema          8
+    ## 10 grande           6
+    ## # ... with 102 more rows
+
+Ya que estos no tienen una ubicación asignada, asumimos que afectaron a
+todo el país:
+
+``` r
+faltantes2_mod <- faltantes2 %>% 
+  mutate(PUNTARENAS = ifelse(str_detect(Desc, regex("río Grande de Térraba", ignore_case = TRUE)), 
+                             TRUE, FALSE)) %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO", "SANJOSE", "PUNTARENAS", "GUANACASTE"), 
+            funs(if_else(str_detect(Desc, 
+                                    regex("huracán", ignore_case = TRUE)), TRUE, .))) %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO", "SANJOSE", "PUNTARENAS", "GUANACASTE"), 
+            funs(if_else(str_detect(Desc, 
+                                    regex("ciclón tropical", ignore_case = TRUE)), TRUE, .))) %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO", "SANJOSE", "PUNTARENAS", "GUANACASTE"), 
+            funs(if_else(str_detect(Desc, 
+                                    regex("huracanes", ignore_case = TRUE)), TRUE, .))) %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO", "SANJOSE", "PUNTARENAS", "GUANACASTE"), 
+            funs(if_else(str_detect(Desc, 
+                                    regex("tormenta tropical", ignore_case = TRUE)), TRUE, .))) %>% 
+  mutate_at(.vars = c("LIMON", "ALAJUELA", "HEREDIA", "CARTAGO", "SANJOSE", "PUNTARENAS", "GUANACASTE"), 
+            funs(if_else(str_detect(Desc, 
+                                    regex("sistema\\s*\\w*\\sbaja presión", ignore_case = TRUE)), TRUE, .)))
+```
+
+Faltantes:
+
+``` r
+faltantes3 <- faltantes2_mod %>% 
+  mutate(total = GUANACASTE + SANJOSE + HEREDIA + ALAJUELA + PUNTARENAS + CARTAGO + LIMON) %>% 
+  filter(total == 0)
+
+faltantes3 %>% summarise(n())
+```
+
+    ## # A tibble: 1 x 1
+    ##   `n()`
+    ##   <int>
+    ## 1    15
+
+Luego del proceso de tratar de asignar automáticamente una provincia a
+cada evento a través de un análisis de las descripciones, quedamos con
+15 eventos que debemos revisar manualmente y asignarle una provincia.
+Tomando como base la tabla *faltantes3* asignamos provincias de acuerdo
+a la columna *ID*.
+
+``` r
+#ID asignado a cada provincia
+CARTAGOm <- c(8, 49, 62, 98, 101, 103, 104, 105)
+SANJOSEm <- c(50, 62, 98, 101, 103, 105)
+HEREDIAm <- c(62, 98, 101, 103, 105)
+GUANACASTEm <- c(62, 80, 98, 101, 103, 105)
+PUNTARENASm <- c(56, 62, 80, 98, 101, 103, 105)
+ALAJUELAm <- c(62, 98, 101, 103, 104, 105)
+LIMONm <- c(21, 49, 62, 63, 67, 94, 98, 101, 103, 104, 105) 
+```
+
+Asignar valores **TRUE** a las filas correspondientes (número en cada
+vector) de las columnas de cada provincia.
+
+``` r
+faltantes3_mod <- faltantes3 %>% 
+  mutate(CARTAGO = if_else(ID %in% CARTAGOm, TRUE, FALSE),
+         SANJOSE = if_else(ID %in% SANJOSEm, TRUE, FALSE),
+         HEREDIA = if_else(ID %in% HEREDIAm, TRUE, FALSE),
+         GUANACASTE = if_else(ID %in% GUANACASTEm, TRUE, FALSE),
+         PUNTARENAS = if_else(ID %in% PUNTARENASm, TRUE, FALSE),
+         ALAJUELA = if_else(ID %in% ALAJUELAm, TRUE, FALSE),
+         LIMON = if_else(ID %in% LIMONm, TRUE, FALSE))
+```
+
+Juntar todas las tablas:
+
+``` r
+tablaGLimpia <- rbind(faltantes3_mod, 
+      faltantes2_mod %>% 
+        mutate(total = GUANACASTE + SANJOSE + HEREDIA + ALAJUELA + PUNTARENAS + CARTAGO + LIMON) %>% 
+        filter(total != 0), 
+      faltantes_mod %>% 
+        mutate(total = GUANACASTE + SANJOSE + HEREDIA + ALAJUELA + PUNTARENAS + CARTAGO + LIMON) %>% 
+        filter(total != 0),
+      tablaGeneral_mod %>% 
+        mutate(total = GUANACASTE + SANJOSE + HEREDIA + ALAJUELA + PUNTARENAS + CARTAGO + LIMON) %>% 
+        filter(total != 0)) %>% 
+  select(-Desc, -total)
+```
+
+Gráfico de número de desastres por provincia:
+
+``` r
+ggplot(tablaGLimpia %>% 
+         select(7:13) %>% 
+         summarise_all(funs(sum(.))) %>% 
+         gather(key = PROVINCIA, value = TOTAL), 
+       aes(x = PROVINCIA, y = TOTAL)) +
+  geom_col()
+```
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 Descargar datos geográficos de límites provinciales y toponimia.
 
 ``` r
 library(gdalUtils)
-```
-
-    ## 
-    ## Attaching package: 'gdalUtils'
-
-    ## The following object is masked from 'package:sf':
-    ## 
-    ##     gdal_rasterize
-
-``` r
 library(rgdal)
-```
-
-    ## Loading required package: sp
-
-    ## rgdal: version: 1.3-6, (SVN revision 773)
-    ##  Geospatial Data Abstraction Library extensions to R successfully loaded
-    ##  Loaded GDAL runtime: GDAL 2.1.3, released 2017/20/01
-    ##  Path to GDAL shared files: /Library/Frameworks/R.framework/Versions/3.5/Resources/library/rgdal/gdal
-    ##  GDAL binary built with GEOS: FALSE 
-    ##  Loaded PROJ.4 runtime: Rel. 4.9.3, 15 August 2016, [PJ_VERSION: 493]
-    ##  Path to PROJ.4 shared files: /Library/Frameworks/R.framework/Versions/3.5/Resources/library/rgdal/proj
-    ##  Linking to sp version: 1.3-1
-
-``` r
 library(rmapshaper)
 
 dsn_prov <- "WFS:http://geos.snitcr.go.cr/be/IGN_5/wfs?"
@@ -236,3 +447,5 @@ poblados_geo <- st_read(dsn_pob, "IGN_NG:toponimos_25k")
     ## bbox:           xmin: 161715.1 ymin: 612663.7 xmax: 657704 ymax: 1240833
     ## epsg (SRID):    5367
     ## proj4string:    +proj=tmerc +lat_0=0 +lon_0=-84 +k=0.9999 +x_0=500000 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
+
+Si nombre aparece en descripción asociar con procincia
