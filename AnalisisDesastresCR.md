@@ -420,7 +420,7 @@ provincias_geo <- st_read(dsn_prov, "IGN_5:limiteprovincial_5k")
 provincias_geo <- ms_simplify(ms_simplify(provincias_geo)) #simplificación de borde de los polígonos
   
 dsn_pob <- "WFS:http://geos.snitcr.go.cr/be/IGN_NG/wms?"
-ogrListLayers(dsn_pob) 
+ogrListLayers(dsn_pob) #lista de capas en ese WFS
 ```
 
     ## [1] "IGN_NG:accidentescosteros_25k"        
@@ -449,4 +449,50 @@ poblados_geo <- st_read(dsn_pob, "IGN_NG:toponimos_25k")
     ## epsg (SRID):    5367
     ## proj4string:    +proj=tmerc +lat_0=0 +lon_0=-84 +k=0.9999 +x_0=500000 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
 
-Si nombre aparece en descripción asociar con procincia
+\#\#Mapa con total de incidentes por provincias:
+
+Conteo de eventos por provincia
+
+``` r
+numProvin <- provincias_geo %>% 
+  select(nom_prov) %>% 
+  left_join(tablaGLimpia %>% 
+              select(5, 7:13) %>% 
+              group_by(TIPO) %>% 
+              summarise_all(funs(sum(.))) %>% 
+              gather(key = PROVINCIA, value = TOTAL, -TIPO) %>% 
+              mutate(PROVINCIA = replace(PROVINCIA, PROVINCIA == "SANJOSE", "San José"), 
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "GUANACASTE", "Guanacaste"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "LIMON", "Limón"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "HEREDIA", "Heredia"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "PUNTARENAS", "Puntarenas"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "CARTAGO", "Cartago"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "ALAJUELA", "Alajuela")),
+            by = c("nom_prov" = "PROVINCIA"))
+```
+
+    ## Warning: Column `nom_prov`/`PROVINCIA` joining factor and character vector,
+    ## coercing into character vector
+
+Mapa:
+
+``` r
+library(tmap)
+
+bbox <- st_bbox(c(xmin = 262775, xmax = 687268, ymax = 1247377, ymin = 868364))
+
+tm_hidro <- tm_shape(numProvin %>% filter(TIPO == "Hidrometeorológicos"),
+                     bbox = bbox) +
+  tm_polygons(col = "TOTAL", palette = "Blues")
+
+tm_deliz <- tm_shape(numProvin %>% filter(TIPO == "Deslizamientos"),
+                     bbox = bbox) +
+  tm_polygons(col = "TOTAL")
+
+tmap_arrange(tm_hidro, tm_deliz)
+```
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+Ahora podemos hacer una animación de los eventos cada decenio a partir
+de 1950
