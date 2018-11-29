@@ -408,7 +408,7 @@ funMapasDec <- function(dec) {
                          bbox = bbox) +
       tm_polygons(col = "TOTAL",
                   style = "fixed",
-                  breaks = c(0, 1, 2, 3, 4, 5)) +
+                  breaks = c(0, 1, 2, 3)) +
       tm_layout(main.title = "Deslizamientos",
                 legend.format=list(fun=function(x) formatC(x, digits=0, format="d"), text.separator = "-"))
     
