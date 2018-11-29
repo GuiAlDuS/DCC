@@ -479,20 +479,178 @@ Mapa:
 ``` r
 library(tmap)
 
-bbox <- st_bbox(c(xmin = 262775, xmax = 687268, ymax = 1247377, ymin = 868364))
+bbox <- st_bbox(c(xmin = 270000, xmax = 680000, ymax = 1230000, ymin = 900000))
 
 tm_hidro <- tm_shape(numProvin %>% filter(TIPO == "Hidrometeorológicos"),
                      bbox = bbox) +
-  tm_polygons(col = "TOTAL", palette = "Blues")
+  tm_polygons(col = "TOTAL", palette = "Blues") +
+  tm_layout(title = "Eventos hidrometeorológicos")
 
 tm_deliz <- tm_shape(numProvin %>% filter(TIPO == "Deslizamientos"),
                      bbox = bbox) +
-  tm_polygons(col = "TOTAL")
+  tm_polygons(col = "TOTAL") +
+  tm_layout(title = "Deslizamientos")
 
 tmap_arrange(tm_hidro, tm_deliz)
 ```
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
 
-Ahora podemos hacer una animación de los eventos cada decenio a partir
-de 1950
+Calculo de cantidad de eventos por década a partir de 1950:
+
+``` r
+numProvinDecada <- provincias_geo %>% 
+  select(nom_prov) %>% 
+  left_join(tablaGLimpia %>% 
+              filter(FECHA >= ymd("1950-01-01")) %>% 
+              mutate(DECADA = format(floor_date(FECHA, years(10)), '%Y')) %>% 
+              select(5, 7:14) %>% 
+              group_by(TIPO, DECADA) %>% 
+              summarise_all(funs(sum(.))) %>% 
+              gather(key = PROVINCIA, value = TOTAL, -TIPO, -DECADA) %>% 
+              mutate(PROVINCIA = replace(PROVINCIA, PROVINCIA == "SANJOSE", "San José"), 
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "GUANACASTE", "Guanacaste"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "LIMON", "Limón"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "HEREDIA", "Heredia"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "PUNTARENAS", "Puntarenas"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "CARTAGO", "Cartago"),
+                     PROVINCIA = replace(PROVINCIA, PROVINCIA == "ALAJUELA", "Alajuela")),
+            by = c("nom_prov" = "PROVINCIA"))
+```
+
+    ## Warning: Column `nom_prov`/`PROVINCIA` joining factor and character vector,
+    ## coercing into character vector
+
+Gráficos por décadas:
+
+``` r
+ggplot(numProvinDecada, aes(x = nom_prov, y = TOTAL, fill = TIPO)) +
+  geom_col() +
+  facet_grid(rows = vars(DECADA)) +
+  labs(x = "Provincias", 
+       y = "Total de eventos", 
+       title = "Número de eventos por década",
+       fill = "Tipo de evento")
+```
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+## Mapas por década:
+
+Preparación de los datos
+
+Para tener una escala estándar de colores para cada década calculamos
+los máximos y mínimos acumulados:
+
+``` r
+summary(numProvinDecada %>% as.data.frame() %>% 
+  group_by(DECADA, TIPO, nom_prov) %>% 
+  summarise(TOTAL = sum(TOTAL)) %>% 
+  spread(key = TIPO, value = TOTAL))
+```
+
+    ##     DECADA            nom_prov         Deslizamientos  
+    ##  Length:49          Length:49          Min.   :0.0000  
+    ##  Class :character   Class :character   1st Qu.:0.0000  
+    ##  Mode  :character   Mode  :character   Median :0.0000  
+    ##                                        Mean   :0.4286  
+    ##                                        3rd Qu.:1.0000  
+    ##                                        Max.   :3.0000  
+    ##                                        NA's   :14      
+    ##  Hidrometeorológicos
+    ##  Min.   : 1.000     
+    ##  1st Qu.: 3.000     
+    ##  Median : 5.000     
+    ##  Mean   : 5.796     
+    ##  3rd Qu.: 7.000     
+    ##  Max.   :15.000     
+    ## 
+
+Función de mapeo
+
+``` r
+decadas <- numProvinDecada %>% 
+  as.data.frame() %>% 
+  select(DECADA) %>% 
+  arrange(DECADA) %>% 
+  group_by(DECADA) %>% 
+  summarise() %>% 
+  pull(DECADA)
+
+
+
+funMapasDec <- function(dec) {
+  tm_hidro <- tm_shape(numProvinDecada %>% 
+                         filter(TIPO == "Hidrometeorológicos" &
+                                  DECADA == dec),
+                       bbox = bbox) +
+    tm_polygons(col = "TOTAL", 
+                palette = "Blues",
+                style = "fixed",
+                breaks = c(1, 3, 6, 9, 12, 15),
+                colorNA = "white") +
+    tm_layout(main.title = "Eventos hidrometeorológicos",
+              title = paste0("Año ", dec),
+              legend.format=list(fun=function(x) formatC(x, digits=0, format="d")))
+  
+  if (is.element("Deslizamientos", numProvinDecada %>% 
+                 filter(DECADA == dec) %>% 
+                 pull(TIPO))) {
+    tm_deliz <- tm_shape(numProvinDecada %>% 
+                           filter(TIPO == "Deslizamientos" &
+                                    DECADA == dec),
+                         bbox = bbox) +
+      tm_polygons(col = "TOTAL",
+                  style = "fixed",
+                  breaks = c(0, 1, 2, 3, 4, 5)) +
+      tm_layout(main.title = "Deslizamientos",
+                legend.format=list(fun=function(x) formatC(x, digits=0, format="d")))
+    
+    tmap_arrange(tm_hidro, tm_deliz)
+  } else {
+    tmap_arrange(tm_hidro)
+  }
+} 
+```
+
+Creación de los mapas:
+
+``` r
+map(decadas, funMapasDec)
+```
+
+    ## [[1]]
+
+    ## 
+    ## [[2]]
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+    ## 
+    ## [[3]]
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-2.png)<!-- -->
+
+    ## 
+    ## [[4]]
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-3.png)<!-- -->
+
+    ## 
+    ## [[5]]
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-4.png)<!-- -->
+
+    ## 
+    ## [[6]]
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-5.png)<!-- -->
+
+    ## 
+    ## [[7]]
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-6.png)<!-- -->![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-7.png)<!-- -->
+
+Y finalmente, el código de un app en Shiny que funcione para seleccionar
+el periodo de tiempo y nos muestrre un mapa de los eventos y la tabla
+con la descripción de los mismos.
