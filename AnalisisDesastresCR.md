@@ -196,10 +196,13 @@ faltantes %>% select(ID, Desc) %>%
     ## # ... with 122 more rows
 
 Viendo las palabras más comunes nos damos cuenta que hay frases que
-podemos asignar a las provincias, estas son: \* **Vertiente Caribe:
-Limón, Alajuela, Heredia, Cartago** \* **Vertiente Caribe = Zona
-Atlántica** \* **Zona Norte: Alajuela y Heredia** \* **Valle Central:
-Heredia, San José, Alajuela y Cartago** \* **Zona Sur: Puntarenas**
+podemos asignar a las provincias, estas son:
+
+  - Vertiente Caribe: Limón, Alajuela, Heredia, Cartago
+  - Vertiente Caribe = Zona Atlántica
+  - Zona Norte: Alajuela y Heredia
+  - Valle Central: Heredia, San José, Alajuela y Cartago
+  - Zona Sur: Puntarenas
 
 Escribimos un script que asocie esas palabras con las provincias
 respectivas:
