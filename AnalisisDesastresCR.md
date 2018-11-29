@@ -726,11 +726,13 @@ map(decadas, funMapasDec)
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-6.png)<!-- -->![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-7.png)<!-- -->
 
-Y finalmente, el código de un app en Shiny que funcione para seleccionar
-el periodo de tiempo y nos muestrre un mapa de los eventos y la tabla
-con la descripción de los mismos.
+Y finalmente, un app en Shiny que permita seleccionar el periodo de
+tiempo, mostrando un mapa de los eventos y la tabla con las
+descripciones de los eventos del periodo elegido.
 
 -----
+
+![](https://i.creativecommons.org/l/by-nc/3.0/88x31.png)
 
 1.  El documento pdf puede descargarse del siguiente enlace:
     <https://www.cne.go.cr/index.php/documentacienuprincipal-96/historico-de-desastres-en-costa-rica>
