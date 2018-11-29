@@ -14,11 +14,11 @@ Costa Rica.
 ### Procedencia de los datos
 
   - Los datos se extrayeron del pdf de la 2nda edición del documento
-    *Histórico de desastres en Costa Rica. Febrero 1723 - Abril 2017*
-    \[1\] elaborado por la [**Comisión nacional de prevención de riesgos
-    y atención de emergencias (CNE) de Costa
+    *Histórico de desastres en Costa Rica. Febrero 1723 - Abril
+    2017*\[1\] elaborado por la [**Comisión nacional de prevención de
+    riesgos y atención de emergencias (CNE) de Costa
     Rica**](https://www.cne.go.cr) utilizando la herramienta gratuita
-    [Tabula](https://tabula.technology)
+    [Tabula](https://tabula.technology).
 
 <!-- end list -->
 
