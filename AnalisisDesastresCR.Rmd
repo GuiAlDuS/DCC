@@ -269,6 +269,47 @@ ggplot(tablaGLimpia %>%
   labs(x = "Provincia", y = "Número total de eventos", fill = "Tipo de evento")
 ```
 
+Podemos también hacer un análisis del número de eventos por mes:
+```{r}
+tablaPorMes <- tablaGLimpia %>% 
+  mutate(MES = month(FECHA)) %>% 
+  select(5, 7:14) %>% 
+  group_by(MES, TIPO) %>% 
+  summarise_all(funs(sum(.))) %>% 
+  gather(key = PROVINCIA, value = TOTAL, -TIPO, -MES) %>% 
+  mutate(PROVINCIA = replace(PROVINCIA, PROVINCIA == "SANJOSE", "San José"), 
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "GUANACASTE", "Guanacaste"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "LIMON", "Limón"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "HEREDIA", "Heredia"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "PUNTARENAS", "Puntarenas"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "CARTAGO", "Cartago"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "ALAJUELA", "Alajuela"))
+
+ggplot(tablaPorMes %>% 
+         group_by(MES, TIPO) %>% 
+         summarise(TOTAL = sum(TOTAL)), aes(x = MES, y = TOTAL, fill = TIPO)) +
+  geom_col() +
+  labs(x = "Mes", y = "Número total de eventos", fill = "Tipo de evento") +
+  scale_x_continuous(breaks=c(1:12),
+                     labels=c("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic"))
+```
+
+Y por provincia:
+```{r}
+ggplot(tablaPorMes %>% 
+         group_by(MES, TIPO, PROVINCIA) %>% 
+         summarise(TOTAL = sum(TOTAL)), aes(x = MES, y = TOTAL, fill = TIPO)) +
+  geom_col() +
+  facet_grid(rows = vars(PROVINCIA)) +
+  labs(x = "Mes", y = "Número total de eventos", fill = "Tipo de evento") +
+  scale_x_continuous(breaks=c(1:12),
+                     labels=c("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic")) +
+  theme(legend.position="bottom", 
+        strip.text.y = element_text(size = 8, margin = margin(1, 1, 1, 1), angle = 0))
+```
+
+
+
 3. Creación de mapas
 
 Descargamos los datos geográficos de límites provinciales y toponimia del **Sistema Nacional de Información Territorial** (SNIT).

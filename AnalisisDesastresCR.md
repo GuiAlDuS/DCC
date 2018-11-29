@@ -406,6 +406,51 @@ ggplot(tablaGLimpia %>%
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
+Podemos también hacer un análisis del número de eventos por mes:
+
+``` r
+tablaPorMes <- tablaGLimpia %>% 
+  mutate(MES = month(FECHA)) %>% 
+  select(5, 7:14) %>% 
+  group_by(MES, TIPO) %>% 
+  summarise_all(funs(sum(.))) %>% 
+  gather(key = PROVINCIA, value = TOTAL, -TIPO, -MES) %>% 
+  mutate(PROVINCIA = replace(PROVINCIA, PROVINCIA == "SANJOSE", "San José"), 
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "GUANACASTE", "Guanacaste"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "LIMON", "Limón"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "HEREDIA", "Heredia"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "PUNTARENAS", "Puntarenas"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "CARTAGO", "Cartago"),
+         PROVINCIA = replace(PROVINCIA, PROVINCIA == "ALAJUELA", "Alajuela"))
+
+ggplot(tablaPorMes %>% 
+         group_by(MES, TIPO) %>% 
+         summarise(TOTAL = sum(TOTAL)), aes(x = MES, y = TOTAL, fill = TIPO)) +
+  geom_col() +
+  labs(x = "Mes", y = "Número total de eventos", fill = "Tipo de evento") +
+  scale_x_continuous(breaks=c(1:12),
+                     labels=c("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic"))
+```
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+
+Y por provincia:
+
+``` r
+ggplot(tablaPorMes %>% 
+         group_by(MES, TIPO, PROVINCIA) %>% 
+         summarise(TOTAL = sum(TOTAL)), aes(x = MES, y = TOTAL, fill = TIPO)) +
+  geom_col() +
+  facet_grid(rows = vars(PROVINCIA)) +
+  labs(x = "Mes", y = "Número total de eventos", fill = "Tipo de evento") +
+  scale_x_continuous(breaks=c(1:12),
+                     labels=c("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic")) +
+  theme(legend.position="bottom", 
+        strip.text.y = element_text(size = 8, margin = margin(1, 1, 1, 1), angle = 0))
+```
+
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
 3.  Creación de mapas
 
 Descargamos los datos geográficos de límites provinciales y toponimia
@@ -524,7 +569,7 @@ tm_deliz <- tm_shape(numProvin %>% filter(TIPO == "Deslizamientos"),
 tmap_arrange(tm_hidro, tm_deliz)
 ```
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
 Calculo de cantidad de eventos por década a partir de 1950:
 
@@ -563,7 +608,7 @@ ggplot(numProvinDecada, aes(x = nom_prov, y = TOTAL, fill = TIPO)) +
        fill = "Tipo de evento")
 ```
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
 ### Mapas por década:
 
@@ -654,32 +699,32 @@ map(decadas, funMapasDec)
     ## 
     ## [[2]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-2.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-2.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-3.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-3.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-4.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-4.png)<!-- -->
 
     ## 
     ## [[6]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-5.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-5.png)<!-- -->
 
     ## 
     ## [[7]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-6.png)<!-- -->![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-26-7.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-6.png)<!-- -->![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-7.png)<!-- -->
 
 Y finalmente, el código de un app en Shiny que funcione para seleccionar
 el periodo de tiempo y nos muestrre un mapa de los eventos y la tabla
