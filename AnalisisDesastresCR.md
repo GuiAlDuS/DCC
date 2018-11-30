@@ -6,34 +6,33 @@ Guillermo Durán Sanabria
 El objetivo de este tutorial es hacer un análisis temporal y geográfico
 de los desastres relacionados a eventos hidrometeorológicos y
 deslizamientos en Costa Rica. El análisis se llevará a cabo utilizando
-datos publicos generados por distintas instituciones gubernamentales de
+datos públicos generados por distintas instituciones gubernamentales de
 Costa Rica.
 
 -----
 
 ### Procedencia de los datos
 
-  - Los datos se extrayeron del pdf de la 2nda edición del documento
-    *Histórico de desastres en Costa Rica. Febrero 1723 - Abril
-    2017*\[1\] elaborado por la [**Comisión nacional de prevención de
-    riesgos y atención de emergencias (CNE) de Costa
+  - Los datos se extrajeron del pdf de la 2nda edición del documento
+    *Histórico de desastres en Costa Rica. Febrero 1723 - Abril 2017*
+    \[1\] elaborado por la [**Comisión Nacional de Prevención de Riesgos
+    y Atención de Emergencias (CNE) de Costa
     Rica**](https://www.cne.go.cr) utilizando la herramienta gratuita
     [Tabula](https://tabula.technology).
 
 <!-- end list -->
 
-  - Para el análisis se extrayeron del documento las tablas sobre los
+  - Para el análisis se extrajeron del documento las tablas sobre los
     eventos hidrometeorológicos y deslizamientos. Se seleccionaron
     únicamente estos dos tipos de desastres por ser los que guardan una
     relación directa con el clima.
 
   - Este tutorial se llevará a cabo utilizando R junto con los paquetes
-    del **tidyverse** para la manipulación de los datos,**tidytext**
-    para el análisis de texto, **lubridate** para las series de tiempo,
-    y los paquetes **sf** y **tmap** para el análisis espacial y
-    generación de mapas.
+    del **tidyverse** para la manipulación de los datos, **lubridate**
+    para las series de tiempo, y los paquetes **sf** y **tmap** para el
+    análisis espacial y generación de mapas.
 
-<!-- end list -->
+Cargar los paquetes requeridos:
 
 ``` r
 library(tidyverse)
@@ -83,9 +82,8 @@ ggplot(tablaGeneral %>%
 ```
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
-
-2.  Utilizando las descripciones de cada evento, trataremos de asignar
-    automáticamente las provincias que impactaron.
+\*\*\* 2. Utilizando las descripciones de cada evento, trataremos de
+asignar automáticamente las provincias que impactaron.
 
 Dado que la tabla no tiene un componente geográfico en su estructura,
 vamos a asignarle uno. El código crea una columna lógica por provincia y
@@ -134,7 +132,7 @@ faltantes %>% summarise(n())
     ##   <int>
     ## 1    49
 
-Deberemos asignar provincia a los 49 eventos que quedaron sin asignar.
+Deberemos asignar provincia a los 49 eventos que quedaron vacíos.
 
 Como el número de entradas que quedaron sin asignar no es tan grande, la
 asignación de las provincias podría hacerse manualmente en un programa
@@ -196,7 +194,7 @@ faltantes %>% select(ID, Desc) %>%
     ## # ... with 122 more rows
 
 Viendo las palabras más comunes nos damos cuenta que hay frases que
-podemos asignar a las provincias, estas son:
+podemos asignar a las provincias. Estas son:
 
   - Vertiente Caribe: Limón, Alajuela, Heredia, Cartago
   - Vertiente Caribe = Zona Atlántica
@@ -232,7 +230,7 @@ faltantes_mod <- faltantes %>%
                          TRUE, .)))
 ```
 
-Aún luego del paso anterior nos quedan varios eventos sin provincia
+Aun luego del paso anterior nos quedan varios eventos sin provincia
 asignada:
 
 ``` r
@@ -247,27 +245,6 @@ faltantes2 %>% summarise(n())
     ##   `n()`
     ##   <int>
     ## 1    39
-
-``` r
-faltantes2
-```
-
-    ## # A tibble: 39 x 15
-    ##    FECHA      `TÍTULO DEL EVE… OBSERVACIONES `REFERENCIA BIB… TIPO     ID
-    ##    <date>     <chr>            <chr>         <chr>            <chr> <int>
-    ##  1 1993-12-09 Deslizamiento e… Deslizamient… "Madrigal, Sala… Desl…     8
-    ##  2 1949-12-07 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    21
-    ##  3 1954-10-20 Huracán Hazel.   Huracán Haze… Montero y Salaz… Hidr…    29
-    ##  4 1955-11-02 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    33
-    ##  5 1963-12-01 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    40
-    ##  6 1969-10-07 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    46
-    ##  7 1970-04-10 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    49
-    ##  8 1971-08-12 Inundaciones en… Inundaciones… Montero y Salaz… Hidr…    50
-    ##  9 1971-09-19 Huracán Irene.   Huracán Iren… Montero y Salaz… Hidr…    51
-    ## 10 1978-08-03 Huracán Caribe.  Huracán Cari… Decreto de Emer… Hidr…    55
-    ## # ... with 29 more rows, and 9 more variables: Desc <chr>,
-    ## #   GUANACASTE <lgl>, SANJOSE <lgl>, HEREDIA <lgl>, ALAJUELA <lgl>,
-    ## #   PUNTARENAS <lgl>, CARTAGO <lgl>, LIMON <lgl>, total <int>
 
 Revisando las descripciones de los que quedan por asignar vemos que
 muchos son huracanes, tormentas (tropicales) y sistemas de baja
@@ -336,7 +313,7 @@ faltantes3 %>% summarise(n())
     ##   <int>
     ## 1    15
 
-Luego del proceso de tratar de asignar automáticamente una provincia a
+Después del proceso de tratar de asignar automáticamente una provincia a
 cada evento a través de un análisis de las descripciones, quedamos con
 15 eventos que debemos revisar manualmente y asignarle una provincia.
 Tomando como base la tabla *faltantes3* asignamos provincias de acuerdo
@@ -404,7 +381,7 @@ ggplot(tablaGLimpia %>%
   labs(x = "Provincia", y = "Número total de eventos", fill = "Tipo de evento")
 ```
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 Podemos también hacer un análisis del número de eventos por mes:
 
@@ -432,7 +409,7 @@ ggplot(tablaPorMes %>%
                      labels=c("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Dic"))
 ```
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 Y por provincia:
 
@@ -449,9 +426,8 @@ ggplot(tablaPorMes %>%
         strip.text.y = element_text(size = 8, margin = margin(1, 1, 1, 1), angle = 0))
 ```
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
-
-3.  Creación de mapas
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+\*\*\* 3. Creación de mapas
 
 Descargamos los datos geográficos de límites provinciales y toponimia
 del **Sistema Nacional de Información Territorial** (SNIT).
@@ -522,9 +498,9 @@ poblados_geo <- st_read(dsn_pob, "IGN_NG:toponimos_25k")
 
 ### Mapas con número de eventos por provincias:
 
-Primero hacemos un conteo de eventos por provincia y hacemos una unión
-de tablas utilizando el límite provincial descargado en el paso anterior
-(notese que este último es un objeto **sf**)
+Primero realizamos un conteo de eventos por provincia y una unión de
+tablas utilizando el límite provincial descargado en el paso anterior
+(nótese que este último es un objeto **sf**)
 
 ``` r
 numProvin <- provincias_geo %>% 
@@ -569,9 +545,9 @@ tm_deliz <- tm_shape(numProvin %>% filter(TIPO == "Deslizamientos"),
 tmap_arrange(tm_hidro, tm_deliz)
 ```
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
 
-Calculo de cantidad de eventos por década a partir de 1950:
+Cálculo de cantidad de eventos por década a partir de 1950:
 
 ``` r
 numProvinDecada <- provincias_geo %>% 
@@ -608,7 +584,7 @@ ggplot(numProvinDecada, aes(x = nom_prov, y = TOTAL, fill = TIPO)) +
        fill = "Tipo de evento")
 ```
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 ### Mapas por década:
 
@@ -699,36 +675,35 @@ map(decadas, funMapasDec)
     ## 
     ## [[2]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
 
     ## 
     ## [[3]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-2.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-27-2.png)<!-- -->
 
     ## 
     ## [[4]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-3.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-27-3.png)<!-- -->
 
     ## 
     ## [[5]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-4.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-27-4.png)<!-- -->
 
     ## 
     ## [[6]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-5.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-27-5.png)<!-- -->
 
     ## 
     ## [[7]]
 
-![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-6.png)<!-- -->![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-28-7.png)<!-- -->
+![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-27-6.png)<!-- -->![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-27-7.png)<!-- -->
 
-Y finalmente, un app en Shiny que permita seleccionar el periodo de
-tiempo, mostrando un mapa de los eventos y la tabla con las
-descripciones de los eventos del periodo elegido.
+Y finalmente, un app en *Shiny* que permita seleccionar el periodo,
+mostrando un mapa de los eventos y la tabla con sus descripciones.
 
 -----
 

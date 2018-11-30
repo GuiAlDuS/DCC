@@ -9,19 +9,21 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-El objetivo de este tutorial es hacer un análisis temporal y geográfico de los desastres relacionados a eventos hidrometeorológicos y deslizamientos en Costa Rica. El análisis se llevará a cabo utilizando datos publicos generados por distintas instituciones gubernamentales de Costa Rica.  
+El objetivo de este tutorial es hacer un análisis temporal y geográfico de los desastres relacionados a eventos hidrometeorológicos y deslizamientos en Costa Rica. El análisis se llevará a cabo utilizando datos públicos generados por distintas instituciones gubernamentales de Costa Rica.  
 
 ***
 
 ### Procedencia de los datos
-* Los datos se extrayeron del pdf de la 2nda edición del documento *Histórico de desastres en Costa Rica. Febrero 1723 - Abril 2017*[^1] elaborado por la [**Comisión nacional de prevención de riesgos y atención de emergencias (CNE) de Costa Rica**](https://www.cne.go.cr) utilizando la herramienta gratuita [Tabula](https://tabula.technology).
+* Los datos se extrajeron del pdf de la 2nda edición del documento *Histórico de desastres en Costa Rica. Febrero 1723 - Abril 2017* [^1] elaborado por la [**Comisión Nacional de Prevención de Riesgos y Atención de Emergencias (CNE) de Costa Rica**](https://www.cne.go.cr) utilizando la herramienta gratuita [Tabula](https://tabula.technology).
 
 [^1]: El documento pdf puede descargarse del siguiente enlace:
 https://www.cne.go.cr/index.php/documentacienuprincipal-96/historico-de-desastres-en-costa-rica
 
-* Para el análisis se extrayeron del documento las tablas sobre los eventos hidrometeorológicos y deslizamientos. Se seleccionaron únicamente estos dos tipos de desastres por ser los que guardan una relación directa con el clima.
+* Para el análisis se extrajeron del documento las tablas sobre los eventos hidrometeorológicos y deslizamientos. Se seleccionaron únicamente estos dos tipos de desastres por ser los que guardan una relación directa con el clima.
 
-* Este tutorial se llevará a cabo utilizando R junto con los paquetes del **tidyverse** para la manipulación de los datos,**tidytext** para el análisis de texto, **lubridate** para las series de tiempo, y los paquetes **sf** y **tmap** para el análisis espacial y generación de mapas.
+* Este tutorial se llevará a cabo utilizando R junto con los paquetes del **tidyverse** para la manipulación de los datos, **lubridate** para las series de tiempo, y los paquetes **sf** y **tmap** para el análisis espacial y generación de mapas.
+
+Cargar los paquetes requeridos:
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
@@ -63,7 +65,7 @@ ggplot(tablaGeneral %>%
   facet_grid(rows = vars(TIPO)) +
   labs(x = "Año")
 ```
-
+***
 2. Utilizando las descripciones de cada evento, trataremos de asignar automáticamente las provincias que impactaron.
 
 Dado que la tabla no tiene un componente geográfico en su estructura, vamos a asignarle uno. El código crea una columna lógica por provincia y le asigna un **TRUE** o **FALSE** si el nombre de la provincia aparece en la columna *`TÍTULO DEL EVENTO`*. Se hizo de esta manera ya que hay varios eventos que reportaron daños en varias provincias.
@@ -97,7 +99,7 @@ faltantes <- tablaGeneral_mod %>%
 faltantes %>% summarise(n())
 ```
 
-Deberemos asignar provincia a los 49 eventos que quedaron sin asignar. 
+Deberemos asignar provincia a los 49 eventos que quedaron vacíos. 
 
 Como el número de entradas que quedaron sin asignar no es tan grande, la asignación de las provincias podría hacerse manualmente en un programa de hoja de cálculo (Excel, por ejemplo), pero también lo podemos hacer automáticamente desde R.
 
@@ -122,7 +124,7 @@ faltantes %>% select(ID, Desc) %>%
   count(Palabras, sort = TRUE)
 ```
 
-Viendo las palabras más comunes nos damos cuenta que hay frases que podemos asignar a las provincias, estas son:
+Viendo las palabras más comunes nos damos cuenta que hay frases que podemos asignar a las provincias. Estas son:
 
 - Vertiente Caribe: Limón, Alajuela, Heredia, Cartago
 - Vertiente Caribe = Zona Atlántica
@@ -156,17 +158,13 @@ faltantes_mod <- faltantes %>%
                          TRUE, .)))
 ```
 
-Aún luego del paso anterior nos quedan varios eventos sin provincia asignada:
+Aun luego del paso anterior nos quedan varios eventos sin provincia asignada:
 ```{r}
 faltantes2 <- faltantes_mod %>% 
   mutate(total = GUANACASTE + SANJOSE + HEREDIA + ALAJUELA + PUNTARENAS + CARTAGO + LIMON) %>% 
   filter(total == 0)
 
 faltantes2 %>% summarise(n())
-```
-
-```{r}
-faltantes2
 ```
 
 Revisando las descripciones de los que quedan por asignar vemos que muchos son huracanes, tormentas (tropicales) y sistemas de baja (presión):
@@ -209,7 +207,7 @@ faltantes3 <- faltantes2_mod %>%
 faltantes3 %>% summarise(n())
 ```
 
-Luego del proceso de tratar de asignar automáticamente una provincia a cada evento a través de un análisis de las descripciones, quedamos con 15 eventos que debemos revisar manualmente y asignarle una provincia.
+Después del proceso de tratar de asignar automáticamente una provincia a cada evento a través de un análisis de las descripciones, quedamos con 15 eventos que debemos revisar manualmente y asignarle una provincia.
 Tomando como base la tabla *faltantes3* asignamos provincias de acuerdo a la columna *ID*.
 
 ```{r}
@@ -307,9 +305,7 @@ ggplot(tablaPorMes %>%
   theme(legend.position="bottom", 
         strip.text.y = element_text(size = 8, margin = margin(1, 1, 1, 1), angle = 0))
 ```
-
-
-
+***
 3. Creación de mapas
 
 Descargamos los datos geográficos de límites provinciales y toponimia del **Sistema Nacional de Información Territorial** (SNIT).
@@ -332,7 +328,7 @@ poblados_geo <- st_read(dsn_pob, "IGN_NG:toponimos_25k")
 
 ### Mapas con número de eventos por provincias:
 
-Primero hacemos un conteo de eventos por provincia y hacemos una unión de tablas utilizando el límite provincial descargado en el paso anterior (notese que este último es un objeto **sf**)
+Primero realizamos un conteo de eventos por provincia y una unión de tablas utilizando el límite provincial descargado en el paso anterior (nótese que este último es un objeto **sf**)
 ```{r}
 numProvin <- provincias_geo %>% 
   select(nom_prov) %>% 
@@ -372,7 +368,7 @@ tm_deliz <- tm_shape(numProvin %>% filter(TIPO == "Deslizamientos"),
 tmap_arrange(tm_hidro, tm_deliz)
 ```
 
-Calculo de cantidad de eventos por década a partir de 1950:
+Cálculo de cantidad de eventos por década a partir de 1950:
 ```{r}
 numProvinDecada <- provincias_geo %>% 
   select(nom_prov) %>% 
@@ -467,7 +463,7 @@ Creación de los mapas:
 map(decadas, funMapasDec)
 ```
 
-Y finalmente, un app en Shiny que permita seleccionar el periodo de tiempo, mostrando un mapa de los eventos y la tabla con las descripciones de los eventos del periodo elegido.
+Y finalmente, un app en *Shiny* que permita seleccionar el periodo, mostrando un mapa de los eventos y la tabla con sus descripciones.
 
 ***
 ![](https://i.creativecommons.org/l/by-nc/3.0/88x31.png)
