@@ -43,14 +43,12 @@ library(tmap)
 
 -----
 
-### Intrucciones para realizar el análisis
+### Intrucciones para realizar el análisis.
 
 1.  Preparación de la tabla general utilizando las tablas generadas en
     Tabula.
 
-Notese que la columna de FECHA se está importando como tipo *date* y se
-están eliminando los encabezados de cada tabla
-individual.
+<!-- end list -->
 
 ``` r
 tablahidro <- read_csv("datos/tabula-historico_desastres_hidrometeo.csv", 
@@ -68,6 +66,10 @@ tablaGeneral <- rbind(tablades, tablahidro) %>%  #juntamos ambas tablas en una t
   mutate(ID = row_number())
 ```
 
+Notese en el código anterior que la columna de FECHA se está importando
+como tipo *date* y se están eliminando los encabezados de cada tabla
+individual.
+
 Gráfico cronológico con el número de eventos por cada tipo de desastre.
 
 ``` r
@@ -82,14 +84,26 @@ ggplot(tablaGeneral %>%
 ```
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
-\*\*\* 2. Utilizando las descripciones de cada evento, trataremos de
-asignar automáticamente las provincias que impactaron.
+
+2.  Utilizando las descripciones de cada evento para identificar las
+    provincias que impactaron.
+
+Como se puede ver en la siguiente captura del documento original, no hay
+una columna específica donde se indique la extensión geográfica
+afectada. Es por esto que a través de las descripciones de cada evento
+identificaremos *semi-automáticamente* las provincias que fueron
+afectadas.
+
+![Captura de tabla de desastres hidrometeorológicos del documento
+*Histórico de desastres en Costa Rica. Febrero 1723 - Abril
+2017*](ScreenDocumento.png)
 
 Dado que la tabla no tiene un componente geográfico en su estructura,
-vamos a asignarle uno. El código crea una columna lógica por provincia y
-le asigna un **TRUE** o **FALSE** si el nombre de la provincia aparece
-en la columna *`TÍTULO DEL EVENTO`*. Se hizo de esta manera ya que hay
-varios eventos que reportaron daños en varias provincias.
+vamos a asignarle uno. El siguiente código crea una columna lógica por
+provincia y le asigna un **TRUE** o **FALSE** si el nombre de la
+provincia aparece en la columna *`TÍTULO DEL EVENTO`*. Se hizo de esta
+manera ya que hay varios eventos que reportaron daños en varias
+provincias.
 
 ``` r
 tablaGeneral_mod <- tablaGeneral %>% 
@@ -427,7 +441,8 @@ ggplot(tablaPorMes %>%
 ```
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
-\*\*\* 3. Creación de mapas
+
+3.  Creación de mapas
 
 Descargamos los datos geográficos de límites provinciales y toponimia
 del **Sistema Nacional de Información Territorial** (SNIT).
@@ -496,9 +511,7 @@ poblados_geo <- st_read(dsn_pob, "IGN_NG:toponimos_25k")
     ## epsg (SRID):    5367
     ## proj4string:    +proj=tmerc +lat_0=0 +lon_0=-84 +k=0.9999 +x_0=500000 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
 
------
-
-Mapas con número de eventos por provincias:
+#### Mapas con número de eventos por provincias:
 
 Primero realizamos un conteo de eventos por provincia y una unión de
 tablas utilizando el límite provincial descargado en el paso anterior
@@ -549,7 +562,7 @@ tmap_arrange(tm_hidro, tm_deliz)
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
 
-Cálculo de cantidad de eventos por década a partir de 1950:
+#### Cálculo de cantidad de eventos por década a partir de 1950:
 
 ``` r
 numProvinDecada <- provincias_geo %>% 
@@ -587,7 +600,10 @@ ggplot(numProvinDecada, aes(x = nom_prov, y = TOTAL, fill = TIPO)) +
 ```
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
-\*\*\* Mapas por década: Preparación de los datos
+
+Mapas por década:
+
+Preparación de los datos
 
 Para tener una escala estándar de colores para cada década calculamos
 los máximos y mínimos acumulados:
