@@ -496,7 +496,9 @@ poblados_geo <- st_read(dsn_pob, "IGN_NG:toponimos_25k")
     ## epsg (SRID):    5367
     ## proj4string:    +proj=tmerc +lat_0=0 +lon_0=-84 +k=0.9999 +x_0=500000 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs
 
-### Mapas con número de eventos por provincias:
+-----
+
+Mapas con número de eventos por provincias:
 
 Primero realizamos un conteo de eventos por provincia y una unión de
 tablas utilizando el límite provincial descargado en el paso anterior
@@ -585,10 +587,7 @@ ggplot(numProvinDecada, aes(x = nom_prov, y = TOTAL, fill = TIPO)) +
 ```
 
 ![](AnalisisDesastresCR_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
-
-### Mapas por década:
-
-Preparación de los datos
+\*\*\* Mapas por década: Preparación de los datos
 
 Para tener una escala estándar de colores para cada década calculamos
 los máximos y mínimos acumulados:

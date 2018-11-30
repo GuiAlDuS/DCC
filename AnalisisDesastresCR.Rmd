@@ -326,7 +326,8 @@ ogrListLayers(dsn_pob) #lista de capas en ese WFS
 poblados_geo <- st_read(dsn_pob, "IGN_NG:toponimos_25k")
 ```
 
-### Mapas con número de eventos por provincias:
+***
+Mapas con número de eventos por provincias:
 
 Primero realizamos un conteo de eventos por provincia y una unión de tablas utilizando el límite provincial descargado en el paso anterior (nótese que este último es un objeto **sf**)
 ```{r}
@@ -399,8 +400,8 @@ ggplot(numProvinDecada, aes(x = nom_prov, y = TOTAL, fill = TIPO)) +
        title = "Número de eventos por década",
        fill = "Tipo de evento")
 ```
-
-### Mapas por década:
+***
+Mapas por década:
 Preparación de los datos
 
 Para tener una escala estándar de colores para cada década calculamos los máximos y mínimos acumulados:
